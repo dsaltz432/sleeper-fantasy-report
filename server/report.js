@@ -98,29 +98,42 @@ export async function buildReport({ api = sleeper, env = process.env, simulation
 }
 
 /**
- * Cached report: rebuilt at most every REPORT_TTL_MS (default 5 min), one
- * build at a time, and the last good report is served if Sleeper fails.
+ * Rebuilds the report in the background on startup and every
+ * REFRESH_INTERVAL_MS (default 5 min), one build at a time, so page loads
+ * never wait on Sleeper. If a build fails, the last good report stays.
+ * `getReport()` only waits when there is no report yet (right after startup).
  */
-export function createReportCache({ ttlMs = Number(process.env.REPORT_TTL_MS ?? 5 * 60_000), build = buildReport } = {}) {
-  let cached = null
-  let inFlight = null
-  return async function getReport() {
-    if (cached && Date.now() - cached.at < ttlMs) return cached.report
-    inFlight ??= build()
-      .then((report) => {
-        cached = { at: Date.now(), report }
-        return report
+export function startReportRefresh({
+  intervalMs = Number(process.env.REFRESH_INTERVAL_MS ?? 5 * 60_000),
+  build = buildReport,
+  log = console,
+} = {}) {
+  let report = null
+  let running = null
+
+  const refresh = () => {
+    const started = Date.now()
+    return (running ??= build()
+      .then((r) => {
+        report = r
+        log.log?.(`[report] refreshed in ${Date.now() - started}ms`)
       })
-      .catch((e) => {
-        if (cached) {
-          console.error('[report] rebuild failed, serving last good report:', e.message)
-          return cached.report
-        }
-        throw e
-      })
+      .catch((e) => log.error('[report] refresh failed:', e.message))
       .finally(() => {
-        inFlight = null
-      })
-    return inFlight
+        running = null
+      }))
+  }
+
+  refresh()
+  const timer = setInterval(refresh, intervalMs)
+
+  return {
+    async getReport() {
+      if (!report) await refresh()
+      if (!report) throw new Error('report not available yet')
+      return report
+    },
+    refresh,
+    stop: () => clearInterval(timer),
   }
 }

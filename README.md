@@ -12,7 +12,7 @@ It replaces `sleeper-data-puller` (Cloud Function API) and
 | Path | What |
 | --- | --- |
 | `server/index.js` | Express: `/api/health`, `/api/v1/report`, and the built app from `dist/` |
-| `server/report.js` | Pulls league, rosters, users and every regular-season week; caches the report for 5 minutes |
+| `server/report.js` | Pulls league, rosters, users and every regular-season week; rebuilds the report in the background every 5 minutes, so page loads never wait on Sleeper |
 | `server/sleeper.js` | Sleeper client (fetch with timeout and retries), same as `name-police/sleeper-sync` |
 | `server/teams.js` | Team records and the overall rating; names come from `server/managers.json` |
 | `server/simulate.js` | Monte Carlo of the remaining season, playoff bracket and loser bowl |
@@ -43,7 +43,7 @@ All optional.
 | `SLEEPER_LEAGUE_NAME` | `The last league` | |
 | `SLEEPER_USER_ID` | Saltz's Sleeper id | |
 | `JORDAN_RULE_SPOTS` | `1` | Playoff spots given to the top points-for teams outside the top seeds |
-| `REPORT_TTL_MS` | `300000` | How long a built report is reused |
+| `REFRESH_INTERVAL_MS` | `300000` | How often the report is rebuilt from Sleeper in the background (if a rebuild fails, the last good report stays) |
 
 ## How the numbers work
 

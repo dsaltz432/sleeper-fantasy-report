@@ -1,10 +1,10 @@
 import express from 'express'
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { createReportCache } from './report.js'
+import { startReportRefresh } from './report.js'
 
 const app = express()
-const getReport = createReportCache()
+const { getReport } = startReportRefresh()
 const dist = fileURLToPath(new URL('../dist', import.meta.url))
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
@@ -30,6 +30,4 @@ if (existsSync(dist)) {
 const port = Number(process.env.PORT ?? 3001)
 app.listen(port, () => {
   console.log(`[server] listening on http://localhost:${port}${existsSync(dist) ? '' : ' (API only; run npm run build for the app)'}`)
-  // Warm the cache so the first visitor doesn't wait on Sleeper.
-  getReport().catch((e) => console.error('[report] warm-up failed:', e.message))
 })

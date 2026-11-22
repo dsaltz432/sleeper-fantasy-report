@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildReport } from './report.js'
+import { buildReport, startReportRefresh } from './report.js'
 
 const user = (id, name) => ({ user_id: id, display_name: name })
 const roster = (id, owner, wins, losses, fpts) => ({ roster_id: id, owner_id: owner, settings: { wins, losses, ties: 0, fpts } })
@@ -31,4 +31,26 @@ test('report: falls back to last season, splits final / live / upcoming weeks, s
   const total = (k) => report.teams.reduce((s, t) => s + t[k], 0)
   assert.ok(Math.abs(total('madePlayoffProbability') - 2) < 1e-9)
   assert.ok(Math.abs(total('championshipProbability') - 1) < 1e-9)
+})
+
+test('refresh: builds in the background, keeps the last good report when a build fails', async () => {
+  // First build succeeds, the second fails, every later one succeeds.
+  let calls = 0
+  const build = async () => {
+    calls++
+    if (calls === 2) throw new Error('Sleeper down')
+    return { build: calls }
+  }
+  const errors = []
+  const refresher = startReportRefresh({ intervalMs: 60_000, build, log: { error: (...a) => errors.push(a) } })
+  try {
+    assert.deepEqual(await refresher.getReport(), { build: 1 }) // waits only for the startup build
+    await refresher.refresh() // fails
+    assert.equal(errors.length, 1)
+    assert.deepEqual(await refresher.getReport(), { build: 1 }) // last good report stays
+    await refresher.refresh() // succeeds
+    assert.deepEqual(await refresher.getReport(), { build: 3 })
+  } finally {
+    refresher.stop()
+  }
 })
