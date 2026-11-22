@@ -1,0 +1,143 @@
+{
+  "_comment": "Sleeper handles -> the names the league uses. user_id is Sleeper's permanent id (handles change); it is null for former managers whose id we don't have. Every handle an account has used is listed, so older seasons resolve too. Micky is ALWAYS 'Champ' \u2014 calling him Micky is a Name Police fine.",
+  "managers": [
+    {
+      "name": "Saltz",
+      "user_id": "602572680327135232",
+      "handles": [
+        "dsaltz190"
+      ],
+      "note": "Daniel Saltz; the league calls him Saltz, never Daniel"
+    },
+    {
+      "name": "Eyal",
+      "user_id": "469183323990650880",
+      "handles": [
+        "Eyalshoham10"
+      ],
+      "note": "2022 onward; Eyal10 was his 2020-21 account"
+    },
+    {
+      "name": "Eyal",
+      "user_id": null,
+      "handles": [
+        "Eyal10"
+      ],
+      "note": "Eyal's 2020-21 account, merged with Eyalshoham10"
+    },
+    {
+      "name": "Ron",
+      "user_id": "574977951018446848",
+      "handles": [
+        "ronbraha"
+      ]
+    },
+    {
+      "name": "Steven",
+      "user_id": "583434980294701056",
+      "handles": [
+        "Sploots"
+      ]
+    },
+    {
+      "name": "Darren",
+      "user_id": "602678724294422528",
+      "handles": [
+        "docjoff",
+        "Plowtime9696"
+      ],
+      "note": "renamed from Plowtime9696 after 2022; co-owns his roster with Kenny"
+    },
+    {
+      "name": "Kenny",
+      "user_id": "1265349065206398976",
+      "handles": [
+        "kbdawgggggggg"
+      ],
+      "note": "co-owner of Darren's roster"
+    },
+    {
+      "name": "Champ",
+      "user_id": "603073742746234880",
+      "handles": [
+        "micklepickle"
+      ],
+      "note": "never 'Micky' \u2014 that's a Name Police fine"
+    },
+    {
+      "name": "Jiji",
+      "user_id": "602535346160336896",
+      "handles": [
+        "ajiji3"
+      ]
+    },
+    {
+      "name": "Bradley",
+      "user_id": "676195526546391040",
+      "handles": [
+        "bgoldman96"
+      ]
+    },
+    {
+      "name": "Jessie",
+      "user_id": "737674610933448704",
+      "handles": [
+        "jdarsinos"
+      ]
+    },
+    {
+      "name": "Jordan",
+      "user_id": "583157166454657024",
+      "handles": [
+        "jscheier"
+      ]
+    },
+    {
+      "name": "Siam",
+      "user_id": "199232508603146240",
+      "handles": [
+        "siamiam"
+      ]
+    },
+    {
+      "name": "Ben",
+      "user_id": "583119825887436800",
+      "handles": [
+        "BenBren"
+      ],
+      "note": "issues the Name Police fines"
+    },
+    {
+      "name": "Adin",
+      "user_id": null,
+      "handles": [
+        "AReisner"
+      ],
+      "note": "former manager"
+    },
+    {
+      "name": "Azria",
+      "user_id": null,
+      "handles": [
+        "jiazria"
+      ],
+      "note": "former manager"
+    },
+    {
+      "name": "Matt Haas",
+      "user_id": null,
+      "handles": [
+        "TheMadHashtagger"
+      ],
+      "note": "former manager"
+    },
+    {
+      "name": "Noam",
+      "user_id": null,
+      "handles": [
+        "noamreisner"
+      ],
+      "note": "former manager"
+    }
+  ]
+}

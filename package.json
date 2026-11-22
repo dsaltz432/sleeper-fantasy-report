@@ -1,0 +1,31 @@
+{
+  "name": "sleeper-fantasy-report",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Standings, matchups and playoff odds for The last league, pulled from Sleeper. One Express server serves both the API and the React app.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"node --watch --env-file-if-exists=.env server/index.js\" \"vite\"",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "test": "node --test \"server/**/*.test.js\""
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
+    "express": "^5.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router": "^8.5.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
+    "concurrently": "^10.0.7",
+    "vite": "^8.3.8"
+  }
+}
