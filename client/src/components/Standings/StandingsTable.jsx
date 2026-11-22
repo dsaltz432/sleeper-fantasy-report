@@ -1,40 +1,32 @@
-import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableRow, TableSortLabel, Tooltip } from '@mui/material';
-import StandingsTableRow from './StandingsTableRow';
+import { Table, TableBody, TableCell, TableHead, TableRow, TableSortLabel, Tooltip } from '@mui/material'
+import StandingsTableRow from './StandingsTableRow'
 
-function StandingsTable({ teams, columns, valueToOrderBy, orderDirection, handleSortRequest, sortedTeams, handleOpen }) {
-    return (
-        <Table>
-            <TableHead>
-                <TableRow className="standings-table-head">
-                    {columns.map((headCell) => (
-                        <TableCell key={headCell.id} className="standings-table-cell">
-                            <Tooltip title={headCell.explanation} arrow>
-                                <TableSortLabel
-                                    active={valueToOrderBy === headCell.id}
-                                    direction={valueToOrderBy === headCell.id ? orderDirection : 'asc'}
-                                    onClick={() => handleSortRequest(headCell.id)}
-                                    className="standings-sort-label"
-                                >
-                                    {headCell.label}
-                                </TableSortLabel>
-                            </Tooltip>
-                        </TableCell>
-                    ))}
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {sortedTeams(teams).map((team) => (
-                    <StandingsTableRow
-                        key={team.rosterId}
-                        team={team}
-                        columns={columns}
-                        handleOpen={handleOpen}
-                    />
-                ))}
-            </TableBody>
-        </Table>
-    );
+export default function StandingsTable({ teams, columns, sort, onSort, onOpen }) {
+  return (
+    <Table>
+      <TableHead>
+        <TableRow className="standings-table-head">
+          {columns.map((col) => (
+            <TableCell key={col.id} className="standings-table-cell">
+              <Tooltip title={col.explanation} arrow>
+                <TableSortLabel
+                  active={sort.by === col.id}
+                  direction={sort.by === col.id ? sort.direction : 'desc'}
+                  onClick={() => onSort(col.id)}
+                  className="standings-sort-label"
+                >
+                  {col.label}
+                </TableSortLabel>
+              </Tooltip>
+            </TableCell>
+          ))}
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {teams.map((team) => (
+          <StandingsTableRow key={team.rosterId} team={team} columns={columns} onOpen={onOpen} />
+        ))}
+      </TableBody>
+    </Table>
+  )
 }
-
-export default StandingsTable;

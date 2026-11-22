@@ -3,7 +3,8 @@
  * loser brackets. Pure: pass `random` to make it deterministic in tests.
  */
 
-const byStanding = (a, b) => b.wins + b.ties / 2 - (a.wins + a.ties / 2) || b.pointsFor - a.pointsFor
+/** Record (a tie is half a win), then points for. */
+export const byStanding = (a, b) => b.wins + b.ties / 2 - (a.wins + a.ties / 2) || b.pointsFor - a.pointsFor
 
 export const winProbability = (ratingA, ratingB) => ratingA / (ratingA + ratingB)
 
@@ -47,7 +48,8 @@ export function runBracket(seeded, advance) {
  *
  * teams:     [{ rosterId, wins, losses, ties, pointsFor, overallRating }]
  * history:   { rosterId: [final weekly scores] }
- * remaining: [{ teamA, teamB, winProbA }] rosterIds of games not yet final
+ * remaining: [{ teamA, teamB, winProbA }] rosterIds of games not yet final;
+ *            winProbA only breaks an exact tie in simulated scores
  */
 export function simulatePlayoffProbabilities({
   teams,
@@ -75,7 +77,9 @@ export function simulatePlayoffProbabilities({
   const jordanSpots = Math.min(jordanRuleSpots, playoffSize)
 
   for (let sim = 0; sim < simulations; sim++) {
-    const table = new Map(teams.map((t) => [t.rosterId, { ...t }]))
+    // tiebreak: teams level on record and points (e.g. no games played or
+    // scheduled yet) are ordered at random, not by roster id.
+    const table = new Map(teams.map((t) => [t.rosterId, { ...t, tiebreak: random() }]))
 
     for (const g of remaining) {
       const a = table.get(g.teamA)
@@ -95,7 +99,7 @@ export function simulatePlayoffProbabilities({
       }
     }
 
-    const standings = [...table.values()].sort(byStanding)
+    const standings = [...table.values()].sort((x, y) => byStanding(x, y) || x.tiebreak - y.tiebreak)
     const byRecord = standings.slice(0, playoffSize - jordanSpots)
     const rest = standings.slice(playoffSize - jordanSpots)
     const jordan = [...rest].sort((x, y) => y.pointsFor - x.pointsFor).slice(0, jordanSpots)
@@ -109,9 +113,9 @@ export function simulatePlayoffProbabilities({
     const champ = runBracket(seeded, (a, b) => (random() < winProbability(a.overallRating, b.overallRating) ? a : b))
     if (champ) counts.get(champ.rosterId).champ++
 
-    // Loser bowl: the loser of each game moves on; the best non-playoff teams
-    // get the byes, same as the league's bracket.
-    const losers = standings.filter((t) => !playoffIds.has(t.rosterId))
+    // Loser bowl: the loser of each game moves on, and it is seeded worst
+    // first, so the worst records get the byes (as on Sleeper's losers_bracket).
+    const losers = standings.filter((t) => !playoffIds.has(t.rosterId)).reverse()
     const pickle = runBracket(losers, (a, b) => (random() < winProbability(a.overallRating, b.overallRating) ? b : a))
     if (pickle) counts.get(pickle.rosterId).loserBowl++
   }

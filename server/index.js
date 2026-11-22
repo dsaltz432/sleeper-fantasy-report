@@ -11,8 +11,8 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }))
 
 app.get('/api/v1/report', async (_req, res) => {
   try {
-    res.set('Cache-Control', 'public, max-age=60')
-    res.json(await getReport())
+    const report = await getReport()
+    res.set('Cache-Control', 'public, max-age=60').json(report)
   } catch (e) {
     console.error('[report] failed:', e)
     res.status(502).json({ error: 'Error fetching data from Sleeper.' })

@@ -1,113 +1,69 @@
-import { useState } from 'react';
-import { Paper, Typography, Box, Button } from '@mui/material';
-import { useReport } from '../../api/api';
-import Spinner from '../Spinner/Spinner';
-import StandingsTable from './StandingsTable';
-import StandingsModal from './StandingsModal';
-import './Standings.css';
+import { useState } from 'react'
+import { Paper, Typography, Box, Button } from '@mui/material'
+import { useReport } from '../../api/api'
+import Spinner from '../Spinner/Spinner'
+import StandingsTable from './StandingsTable'
+import StandingsModal from './StandingsModal'
+import './Standings.css'
 
-function Standings() {
-    const { data, error, loading } = useReport();
-    const teams = data?.teams ?? [];
-    const [orderDirection, setOrderDirection] = useState('desc');
-    const [valueToOrderBy, setValueToOrderBy] = useState('shortName');
-    const [selectedTeam, setSelectedTeam] = useState(null);
-    const [open, setOpen] = useState(false);
-    const [isPlayoffsView, setIsPlayoffsView] = useState(false);
+const RECORD = { id: 'record', label: 'Record', explanation: 'Team name and win-loss record' }
+const RATING = { id: 'overallRating', label: 'Rating', explanation: 'Overall team rating based on performance' }
+const PLAYOFFS = { id: 'madePlayoffProbability', label: 'Playoffs', explanation: 'Probability of making the playoffs' }
 
-    const handleOpen = (team) => {
-        setSelectedTeam(team);
-        setOpen(true);
-    };
+const STANDINGS_COLUMNS = [
+  RECORD,
+  { id: 'pointsFor', label: 'PF', explanation: 'Total points scored by the team' },
+  { id: 'pointsAgainst', label: 'PA', explanation: 'Total points scored against the team' },
+  RATING,
+  PLAYOFFS,
+]
 
-    const handleClose = () => {
-        setOpen(false);
-        setSelectedTeam(null);
-    };
+const PLAYOFFS_COLUMNS = [
+  RECORD,
+  RATING,
+  PLAYOFFS,
+  { id: 'championshipProbability', label: 'Champ', explanation: 'Probability of winning the championship' },
+  { id: 'loserBowlProbability', label: 'Pickles', explanation: 'Probability of finishing last' },
+]
 
-    const handleSortRequest = (property) => {
-        const isAsc = valueToOrderBy === property && orderDirection === 'asc';
-        setOrderDirection(isAsc ? 'desc' : 'asc');
-        setValueToOrderBy(property);
-    };
+/** Ascending comparator for a column; Record is wins minus losses, then points for. */
+const compare = (key) => (a, b) =>
+  key === 'record' ? a.wins - a.losses - (b.wins - b.losses) || a.pointsFor - b.pointsFor : a[key] - b[key]
 
-    const sortedTeams = (teamsArray) => {
-        return [...teamsArray].sort((a, b) => {
-            if (valueToOrderBy === 'shortName') {
-                const aRecord = a.wins - a.losses;
-                const bRecord = b.wins - b.losses;
-                if (aRecord === bRecord) {
-                    return orderDirection === 'asc' ? a.pointsFor - b.pointsFor : b.pointsFor - a.pointsFor;
-                }
-                return orderDirection === 'asc' ? aRecord - bRecord : bRecord - aRecord;
-            } else {
-                if (b[valueToOrderBy] < a[valueToOrderBy]) {
-                    return orderDirection === 'asc' ? -1 : 1;
-                }
-                if (b[valueToOrderBy] > a[valueToOrderBy]) {
-                    return orderDirection === 'asc' ? 1 : -1;
-                }
-                return 0;
-            }
-        });
-    };
+export default function Standings() {
+  const { data, error, loading } = useReport()
+  const [sort, setSort] = useState({ by: 'record', direction: 'desc' })
+  const [selectedTeam, setSelectedTeam] = useState(null)
+  const [isPlayoffsView, setIsPlayoffsView] = useState(false)
 
-    if (loading) {
-        return <Spinner />;
-    }
+  if (loading) return <Spinner />
+  if (error || !data) return <Typography>Error: {error ?? 'Failed to load teams'}</Typography>
 
-    if (error || !data) {
-        return <Typography>Error: {error ?? 'Failed to load teams'}</Typography>;
-    }
+  // A new column sorts best first; clicking it again flips the direction.
+  const handleSortRequest = (by) =>
+    setSort((s) => ({ by, direction: s.by === by && s.direction === 'desc' ? 'asc' : 'desc' }))
 
-    // Define table columns based on the view
-    const standingsColumns = [
-        { id: 'shortName', label: 'Record', explanation: 'Team name and win-loss record' },
-        { id: 'pointsFor', label: 'PF', explanation: 'Total points scored by the team' },
-        { id: 'pointsAgainst', label: 'PA', explanation: 'Total points scored against the team' },
-        { id: 'overallRating', label: 'Rating', explanation: 'Overall team rating based on performance' },
-        { id: 'madePlayoffProbability', label: 'Playoffs', explanation: 'Probability of making the playoffs' },
-    ];
+  const sign = sort.direction === 'asc' ? 1 : -1
+  const teams = [...data.teams].sort((a, b) => sign * compare(sort.by)(a, b))
 
-    const playoffsColumns = [
-        { id: 'shortName', label: 'Record', explanation: 'Team name and win-loss record' },
-        { id: 'overallRating', label: 'Rating', explanation: 'Overall team rating based on performance' },
-        { id: 'madePlayoffProbability', label: 'Playoffs', explanation: 'Probability of making the playoffs' },
-        { id: 'championshipProbability', label: 'Champ', explanation: 'Probability of winning the championship' },
-        { id: 'loserBowlProbability', label: 'Pickles', explanation: 'Probability of finishing last' },
-    ];
-
-    const columns = isPlayoffsView ? playoffsColumns : standingsColumns;
-
-    return (
-        <div className="standings-wrapper">
-            <Paper className="standings-container">
-                <Box className="standings-header" display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h5">{isPlayoffsView ? 'Playoff Odds' : 'Standings'}</Typography>
-                    <Button variant="contained" onClick={() => setIsPlayoffsView(!isPlayoffsView)}>
-                        {isPlayoffsView ? 'Standings' : 'Playoffs'}
-                    </Button>
-                </Box>
-                <div className="standings-table">
-                    <StandingsTable
-                        teams={teams}
-                        columns={columns}
-                        valueToOrderBy={valueToOrderBy}
-                        orderDirection={orderDirection}
-                        handleSortRequest={handleSortRequest}
-                        sortedTeams={sortedTeams}
-                        handleOpen={handleOpen}
-                    />
-                </div>
-            </Paper>
-
-            <StandingsModal
-                open={open}
-                handleClose={handleClose}
-                selectedTeam={selectedTeam}
-            />
-        </div>
-    );
+  return (
+    <div className="standings-wrapper">
+      <Paper className="standings-container">
+        <Box className="standings-header" display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h5">{isPlayoffsView ? 'Playoff Odds' : 'Standings'}</Typography>
+          <Button variant="contained" onClick={() => setIsPlayoffsView(!isPlayoffsView)}>
+            {isPlayoffsView ? 'Standings' : 'Playoffs'}
+          </Button>
+        </Box>
+        <StandingsTable
+          teams={teams}
+          columns={isPlayoffsView ? PLAYOFFS_COLUMNS : STANDINGS_COLUMNS}
+          sort={sort}
+          onSort={handleSortRequest}
+          onOpen={setSelectedTeam}
+        />
+      </Paper>
+      <StandingsModal team={selectedTeam} onClose={() => setSelectedTeam(null)} />
+    </div>
+  )
 }
-
-export default Standings;

@@ -1,7 +1,6 @@
 /**
  * Sleeper's public API: read-only, no key. Sleeper asks for fewer than 1000
- * calls a minute, and for /players/nfl (~15MB) at most once a day.
- * Same client as name-police/sleeper-sync.
+ * calls a minute. Same client as name-police/sleeper-sync.
  */
 const BASE = 'https://api.sleeper.app'
 
@@ -26,5 +25,4 @@ export const sleeper = {
   users: (id) => get(`/v1/league/${id}/users`).then((x) => x ?? []),
   rosters: (id) => get(`/v1/league/${id}/rosters`).then((x) => x ?? []),
   matchups: (id, week) => get(`/v1/league/${id}/matchups/${week}`).then((x) => x ?? []),
-  players: () => get('/v1/players/nfl'),
 }

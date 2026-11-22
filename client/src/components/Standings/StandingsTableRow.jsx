@@ -1,96 +1,52 @@
-import React from 'react';
-import { TableCell, TableRow } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { Box, TableCell, TableRow } from '@mui/material'
 
-function StandingsTableRow({ team, columns, handleOpen }) {
-    const theme = useTheme();
+export const percent = (p) => `${(p * 100).toFixed(1)}%`
 
-    return (
-        <TableRow hover key={team.rosterId} className="standings-table-row">
-            {columns.map((col) => {
-                switch (col.id) {
-                    case 'shortName':
-                        return (
-                            <TableCell className="standings-table-cell" key={col.id}>
-                                <div className="standings-team-name">
-                                    {team.shortName}
-                                </div>
-                                <div>
-                                    {team.wins}-{team.losses}
-                                    {team.streak && (
-                                        <span
-                                            className="standings-streak"
-                                            style={{
-                                                color: team.streak.includes('W')
-                                                    ? theme.palette.success.main
-                                                    : theme.palette.error.main,
-                                            }}
-                                        >
-                                            {' '}({team.streak})
-                                        </span>
-                                    )}
-                                </div>
-                            </TableCell>
-                        );
-                    case 'pointsFor':
-                        return (
-                            <TableCell className="standings-table-cell" key={col.id}>
-                                {team.pointsFor}
-                            </TableCell>
-                        );
-                    case 'pointsAgainst':
-                        return (
-                            <TableCell className="standings-table-cell" key={col.id}>
-                                {team.pointsAgainst}
-                            </TableCell>
-                        );
-                    case 'overallRating':
-                        return (
-                            <TableCell className="standings-table-cell" key={col.id}>
-                                {team.overallRating !== undefined
-                                    ? `${(team.overallRating * 100).toFixed(1)}`
-                                    : 'N/A'}
-                            </TableCell>
-                        );
-                    case 'madePlayoffProbability':
-                        return (
-                            <TableCell
-                                className="standings-table-cell"
-                                onClick={() => handleOpen(team)}
-                                key={col.id}
-                                style={{
-                                    cursor: 'pointer',
-                                    color: '#1976d2',
-                                    textDecoration: 'underline',
-                                }}
-                            >
-                                {team.madePlayoffProbability !== undefined
-                                    ? `${(team.madePlayoffProbability * 100).toFixed(1)}%`
-                                    : 'N/A'}
-                            </TableCell>
-                        );
-                    case 'championshipProbability':
-                        return (
-                            <TableCell className="standings-table-cell" key={col.id}>
-                                {team.championshipProbability !== undefined
-                                    ? `${(team.championshipProbability * 100).toFixed(1)}%`
-                                    : 'N/A'}
-                            </TableCell>
-                        );
-                    case 'loserBowlProbability':
-                        return (
-                            <TableCell className="standings-table-cell" key={col.id}>
-                                {team.loserBowlProbability !== undefined
-                                    ? `${(team.loserBowlProbability * 100).toFixed(1)}%`
-                                    : 'N/A'}
-                            </TableCell>
-                        );
-                    default:
-                        return null;
-                }
-            })}
-        </TableRow>
-    );
+function cellContent(team, id) {
+  switch (id) {
+    case 'record':
+      return (
+        <>
+          <div>{team.shortName}</div>
+          <div>
+            {team.wins}-{team.losses}
+            {team.ties > 0 && `-${team.ties}`}
+            {team.streak && (
+              <Box component="span" sx={{ color: team.streak.includes('W') ? 'success.main' : 'error.main' }}>
+                {' '}({team.streak})
+              </Box>
+            )}
+          </div>
+        </>
+      )
+    case 'overallRating':
+      return (team.overallRating * 100).toFixed(1)
+    case 'pointsFor':
+    case 'pointsAgainst':
+      return team[id]
+    default:
+      return percent(team[id])
+  }
 }
 
-export default StandingsTableRow;
+const PLAYOFF_LINK = { cursor: 'pointer', color: '#1976d2', textDecoration: 'underline' }
+
+export default function StandingsTableRow({ team, columns, onOpen }) {
+  return (
+    <TableRow hover className="standings-table-row">
+      {columns.map(({ id }) => {
+        const opensBreakdown = id === 'madePlayoffProbability'
+        return (
+          <TableCell
+            key={id}
+            className="standings-table-cell"
+            onClick={opensBreakdown ? () => onOpen(team) : undefined}
+            style={opensBreakdown ? PLAYOFF_LINK : undefined}
+          >
+            {cellContent(team, id)}
+          </TableCell>
+        )
+      })}
+    </TableRow>
+  )
+}
