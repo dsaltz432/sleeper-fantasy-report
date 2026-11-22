@@ -99,12 +99,12 @@ export async function buildReport({ api = sleeper, env = process.env, simulation
 
 /**
  * Rebuilds the report in the background on startup and every
- * REFRESH_INTERVAL_MS (default 5 min), one build at a time, so page loads
+ * REFRESH_INTERVAL_MS (default hourly), one build at a time, so page loads
  * never wait on Sleeper. If a build fails, the last good report stays.
  * `getReport()` only waits when there is no report yet (right after startup).
  */
 export function startReportRefresh({
-  intervalMs = Number(process.env.REFRESH_INTERVAL_MS ?? 5 * 60_000),
+  intervalMs = Number(process.env.REFRESH_INTERVAL_MS ?? 60 * 60_000),
   build = buildReport,
   log = console,
 } = {}) {
