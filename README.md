@@ -53,4 +53,4 @@ All optional.
 
 ## Deploying (Railway)
 
-`railway.json` builds with `npm run build`, starts with `npm start`, and health-checks `/api/health`.
+`.railway/railway.ts` builds with `npm run build`, starts with `npm start`, and health-checks `/api/health`. Change it, then `railway config plan` and `railway config apply`.
