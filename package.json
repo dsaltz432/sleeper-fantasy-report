@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "node --watch server/index.js",
+    "build": "echo \"No build step: the site is public/index.html\"",
     "start": "node server/index.js"
   },
   "dependencies": {
