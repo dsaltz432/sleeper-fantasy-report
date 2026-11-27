@@ -1,33 +1,19 @@
 import express from 'express'
-import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { startReportRefresh } from './report.js'
 
+// The site is a single static page (public/index.html). It loads live results
+// straight from the Sleeper API in the browser and falls back to the snapshot
+// baked into the page if Sleeper can't be reached.
 const app = express()
-const { getReport } = startReportRefresh()
-const dist = fileURLToPath(new URL('../dist', import.meta.url))
+const site = fileURLToPath(new URL('../public', import.meta.url))
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
-
-app.get('/api/v1/report', async (_req, res) => {
-  try {
-    const report = await getReport()
-    res.set('Cache-Control', 'public, max-age=60').json(report)
-  } catch (e) {
-    console.error('[report] failed:', e)
-    res.status(502).json({ error: 'Error fetching data from Sleeper.' })
-  }
-})
-
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }))
 
-// The built React app (npm run build). In dev, Vite serves it and proxies /api here.
-if (existsSync(dist)) {
-  app.use(express.static(dist, { index: false, maxAge: '1h' }))
-  app.get('/{*path}', (_req, res) => res.sendFile('index.html', { root: dist }))
-}
+app.use(express.static(site, { maxAge: '5m' }))
+app.get('/{*path}', (_req, res) => res.sendFile('index.html', { root: site }))
 
 const port = Number(process.env.PORT ?? 3001)
 app.listen(port, () => {
-  console.log(`[server] listening on http://localhost:${port}${existsSync(dist) ? '' : ' (API only; run npm run build for the app)'}`)
+  console.log(`[server] listening on http://localhost:${port}`)
 })
