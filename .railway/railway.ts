@@ -1,9 +1,9 @@
 import { defineRailway, project, service } from "railway/iac";
 
-// One service: Express serves /api and the Vite-built app from dist/.
+// One service: Express serves the static page in public/ and /api/health.
 export default defineRailway(() => {
   const web = service("web", {
-    build: { buildCommand: "npm run build", buildEnvironment: "V3", builder: "RAILPACK" },
+    build: { buildEnvironment: "V3", builder: "RAILPACK" },
     start: "npm start",
     healthcheck: "/api/health",
     healthcheckTimeout: 60,
